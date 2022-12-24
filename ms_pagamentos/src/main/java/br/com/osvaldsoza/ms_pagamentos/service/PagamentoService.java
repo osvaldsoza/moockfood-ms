@@ -53,17 +53,28 @@ public class PagamentoService {
         return modelMapper.map(pagamento, PagamentoDto.class);
     }
 
-    public void excluirPagamento(Long id){
+    public void excluirPagamento(Long id) {
         pagamentoRepository.deleteById(id);
     }
 
-    public void confirmaPagamento(Long id){
+    public void confirmaPagamento(Long id) {
+        Pagamento pagamento = salvaPagamento(id, Status.CONFIRMADO);
+        pedidoClient.atualizaPagamento(pagamento.getPedidoId());
+    }
+
+    public void alteraStatus(Long id) {
+        salvaPagamento(id,Status.CONFIRMADO_SEM_INTEGRACAO);
+    }
+
+    public Pagamento salvaPagamento(Long id, Status status) {
         Optional<Pagamento> pagamento = pagamentoRepository.findById(id);
-        if(pagamento.isEmpty()){
+        if (pagamento.isEmpty()) {
             throw new EntityNotFoundException();
         }
-        pagamento.get().setStatus(Status.CONFIRMADO);
+        pagamento.get().setStatus(status);
         pagamentoRepository.save(pagamento.get());
-        pedidoClient.atualizaPagamento(pagamento.get().getPedidoId());
+
+        return pagamento.get();
     }
+
 }

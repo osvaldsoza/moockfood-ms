@@ -2,6 +2,7 @@ package br.com.osvaldsoza.ms_pagamentos.controller;
 
 import br.com.osvaldsoza.ms_pagamentos.dto.PagamentoDto;
 import br.com.osvaldsoza.ms_pagamentos.service.PagamentoService;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +54,12 @@ public class PagamentoController {
     }
 
     @PatchMapping("/{id}/confirmar")
+    @CircuitBreaker(name = "atualizaPedido", fallbackMethod = "pagamentoAutoprizadoComintegracaoPendente")
     public void confirmaPagamento(@PathVariable Long id){
         pagamentoService.confirmaPagamento(id);
+    }
+
+    public void pagamentoAutoprizadoComintegracaoPendente(Long id, Exception exception){
+        pagamentoService.alteraStatus(id);
     }
 }
